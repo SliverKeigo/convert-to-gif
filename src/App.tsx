@@ -10,7 +10,7 @@ const App: React.FC = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [convertedFiles, setConvertedFiles] = useState<string[]>([]);
   const [hasAddedFiles, setHasAddedFiles] = useState(false);
-
+  let [progress, setProgress] = useState(0);
   const {getRootProps, getInputProps} = useDropzone({
     onDrop: (acceptedFiles) => {
       setFiles(acceptedFiles);
@@ -20,18 +20,26 @@ const App: React.FC = () => {
 
   const handleConvert = async () => {
     const convertedFiles: string[] = [];
-    for (const file of files) {
+    const totalProgress = files.length;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
       const compressedFile = await imageCompression(file, {
         maxSizeMB: 5,
         maxWidthOrHeight: 1920,
       });
       const convertedFile = await createGIF(compressedFile);
       convertedFiles.push(convertedFile);
+
+      const currentProgress = Math.min(Math.ceil((i + 1) / totalProgress * 100), 100);
+      setProgress(currentProgress);
+
     }
     setConvertedFiles(convertedFiles);
   };
 
   const handleDownload = () => {
+    setProgress(0);
     const zip = new JSZip();
     for (const file  of convertedFiles) {
       const uniqueId = Math.random().toString(36).substring(2, 7);
@@ -40,6 +48,8 @@ const App: React.FC = () => {
     zip.generateAsync({type: 'blob'}).then((content) => {
       saveAs(content, 'converted_files.zip');
     });
+    setConvertedFiles([]);
+    setFiles([])
   };
 
   return (
@@ -53,16 +63,22 @@ const App: React.FC = () => {
         )}
       </div>
       {
-        convertedFiles.length > 0 ? (
-        <button onClick={handleDownload}
-                className="download-button">
-          Download Converted Files
-        </button>)
+        progress !== 0 ? (
+            <button onClick={handleDownload}
+                    className="download-button">
+              {(progress !== 100 || (convertedFiles.length !== files.length)) ? (
+                <div className="progress-bar">
+                  Converting {progress}%
+                </div>
+              ) : "Download Converted Files"}
+
+            </button>)
           : (<button onClick={handleConvert}
                    className="convert-button">
-        Convert to GIF
+                Convert to GIF
       </button>)
       }
+
     </div>
   );
 };
