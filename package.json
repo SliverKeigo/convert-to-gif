@@ -39,5 +39,13 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/file-saver": "^2.0.7",
+    "browser-image-compression": "^2.0.2",
+    "file-saver": "^2.0.5",
+    "gifshot": "^0.4.5",
+    "jszip": "^3.10.1",
+    "react-dropzone": "^14.2.3"
   }
 }
